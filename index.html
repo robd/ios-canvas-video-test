@@ -1,0 +1,90 @@
+<html>
+<head>
+    <title>IOS Safari Emulator freeze</title>
+</head>
+<body>
+<label><input type="checkbox" id="attachVideo">Attach Video</label><br>
+<a id="startLink" href="#">Click to start video in canvas</a>
+<script>
+    function logWithTime(name, obj) {
+        if (obj) {
+            console.log(name, new Date().toISOString(), obj || null)
+        } else {
+            console.log(name, new Date().toISOString())
+        }
+    }
+
+    function addEventListenersForDebug(vid, ...eventNames) {
+        eventNames.forEach(function(eventName) {
+            vid.addEventListener(
+                eventName,
+                function (e) {
+                    logWithTime(eventName + " callback", {
+                        event: e,
+                        buffered: this.buffered,
+                        readyState: this.readyState,
+                    });
+                }
+            )
+        })
+    }
+
+    const startLink = document.getElementById("startLink");
+    const attachVideoCheckbox = document.getElementById("attachVideo");
+    startLink.addEventListener("click", function() {
+        logWithTime("Start button clicked")
+
+        const vid = document.createElement("video");
+        vid.setAttribute("playsinline", "playsinline");
+        vid.setAttribute("webkit-playsinline", "webkit-playsinline");
+
+        addEventListenersForDebug(vid,
+            "abort",
+            "canplay",
+            "canplaythrough",
+            "durationchange",
+            "emptied",
+            "ended",
+            "error",
+            "loadeddata",
+            "loadedmetadata",
+            "loadstart",
+            "pause",
+            "play",
+            "progress",
+            "ratechange",
+            "seeked",
+            "seeking",
+            "stalled",
+            "suspend",
+            // "timeupdate",
+            "volumechange",
+            "waiting"
+        )
+
+        vid.src="https://github.com/mediaelement/mediaelement-files/blob/master/big_buck_bunny.mp4?raw=true"
+
+        logWithTime("Video src set");
+
+        const canvas = document.createElement("canvas");
+        canvas.width = 800
+        canvas.height = 500
+        document.body.append(canvas);
+
+        if (attachVideoCheckbox.checked) {
+            document.body.append(vid);
+        }
+        const ctx = canvas.getContext("2d");
+        let anim = function () {
+            requestAnimationFrame(anim);
+            ctx.drawImage(vid, 0, 0);
+        };
+
+        vid.play().then(anim)
+        logWithTime("Video started")
+    })
+
+    logWithTime("Script loaded");
+</script>
+</body>
+</html>
